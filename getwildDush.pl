@@ -4,19 +4,30 @@ use warnings;
 use utf8;
 
 use Data::Dumper;
-use LWP;
-uaw JSON;
+use Socket;
+use JSON;
 
-my $ua = LWP::UserAgent->new;
+my $socket_receive;
+socket($socket_receive,PF_INET,SOCK_STREAM,getprotobyname('tcp')) or die "Cannot create socket:$!";
 
-my $req = HTTP::Request->new(GET => 'http://127.0.0.1:3000/getwild');
+my $local_port = 9000;
 
-my $res = $ua->request($req);
+my $pack_addr = sockaddr_in($local_port,INADDR_ANY);
 
-    if ($res->is_success) {
-        
-    } else {
-        print $res->status_line,"\n";
+bind($socket_receive,$pack_addr) or die "Cannot bind:$!";
+
+listen($socket_receive,SOMAXCONN) or die "Cannot listen:$!";
+
+my $sock_client;
+
+
+while (accept($sock_client,$socket_receive)) {
+   
+    my $content;
+
+    while (my $line = <$sock_client>) {
+        $content.= $line;
     }
 
- 
+    close $sock_client;
+} 
